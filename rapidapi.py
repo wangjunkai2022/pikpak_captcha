@@ -4,7 +4,7 @@ import os
 
 import requests
 
-from utils import domain_get, extract_parameters, remove_parameters
+from .utils import domain_get, extract_parameters, remove_parameters
 
 RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY")
 logger = logging.getLogger("rapidapi")

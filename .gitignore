@@ -3,3 +3,4 @@
 /slide_img_temp/
 /ai/dataTrain/
 *.DS_Store
+/__pycache__/
