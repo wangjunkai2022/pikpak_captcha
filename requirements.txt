@@ -1,5 +1,2 @@
-requests
-twocaptcha
-numpy
-opencv-python-headless
 ultralytics
+twocaptcha
