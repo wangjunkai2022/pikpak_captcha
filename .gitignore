@@ -1,0 +1,5 @@
+/.venv/
+/ai/__pycache__/
+/slide_img_temp/
+/ai/dataTrain/
+*.DS_Store
