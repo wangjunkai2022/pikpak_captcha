@@ -1,6 +1,6 @@
 import logging
 
-from pikpak_captcha.rapidapi import BaseRapidapi
+from . import BaseRapidapi
 
 logger = logging.getLogger("rapidapi_capsolver")
 logger.setLevel(logging.DEBUG)

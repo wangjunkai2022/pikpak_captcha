@@ -4,7 +4,7 @@ import os
 
 import requests
 
-from .utils import domain_get, extract_parameters, remove_parameters
+from ..utils import domain_get, extract_parameters, remove_parameters
 
 RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY")
 logger = logging.getLogger("rapidapi")
@@ -89,9 +89,9 @@ class BaseRapidapi():
 
 # 定义要创建的类名集合
 class_names = {
-    "Captcha2": "captcha.rapidapi.child.2captcha",
-    "CaptchaKiller": "captcha.rapidapi.child.captcha_killer",
-    'Capsolver': 'captcha.rapidapi.child.capsolver',
+    "Captcha2": ".2captcha",
+    "CaptchaKiller": ".captcha_killer",
+    'Capsolver': '.capsolver',
 }
 
 
@@ -99,7 +99,7 @@ def _getInstanceClass(class_name) -> BaseRapidapi:
     module_name = class_names.get(class_name)
     if module_name:
         # 动态导入模块
-        module = importlib.import_module(module_name)
+        module = importlib.import_module(module_name, package=__package__)
         # 获取类对象
         cls = getattr(module, class_name)
         # 创建实例
