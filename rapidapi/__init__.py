@@ -30,7 +30,7 @@ class BaseRapidapi():
         self.params[self.key_api_params_url] = f"{url}"
         self.params[self.key_api_params_sitekey] = f"{sitekey}"
         headers = {
-            "x-rapidapi-key": RAPIDAPI_KEY,
+            "x-rapidapi-key": RAPIDAPI_KEY or os.getenv("RAPIDAPI_KEY"),
             "x-rapidapi-host": domain_get(self.api_url),
         }
         result = requests.get(
@@ -74,7 +74,7 @@ class BaseRapidapi():
         self.params[self.key_api_params_url] = f"{url}"
         self.params[self.key_api_params_sitekey] = f"{sitekey}"
         headers = {
-            "x-rapidapi-key": RAPIDAPI_KEY,
+            "x-rapidapi-key": RAPIDAPI_KEY or os.getenv("RAPIDAPI_KEY"),
             "x-rapidapi-host": domain_get(self.api_url),
         }
         result = requests.get(

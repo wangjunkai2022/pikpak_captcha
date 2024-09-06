@@ -15,6 +15,21 @@ handler = logging.StreamHandler()
 handler.setLevel(logging.DEBUG)
 logger.addHandler(handler)
 
+proxy = None
+
+
+def captcha2(url: str = ""):
+    logger.info('滑块验证中!!!')
+    logger.debug(f'url:{url}')
+    params_dict = extract_parameters(url)
+    device_id = params_dict.get("device_id")
+    captcha_token = params_dict.get('captcha_token')
+    url = f"https://user.mypikpak.com/credit/v1/report?deviceid={device_id}&captcha_token={captcha_token}&type=pzzlSlider&result=0"
+    response2 = requests.get(url, proxies=proxy)
+    response_data = response2.json()
+    logger.debug(json.dumps(response_data, indent=4))
+    return response_data.get("captcha_token")
+
 
 def captcha(url: str = ""):
     captcha_url = url
@@ -29,7 +44,7 @@ def captcha(url: str = ""):
         "deviceid": device_id,
         "traceid": ""
     }
-    response = requests.get(url, params=params,)
+    response = requests.get(url, params=params, proxies=proxy,)
     imgs_json = response.json()
     frames = imgs_json["frames"]
     pid = imgs_json['pid']
@@ -42,7 +57,7 @@ def captcha(url: str = ""):
         'traceid': traceid
     }
     url = "https://user.mypikpak.com/pzzl/image"
-    response1 = requests.get(url, params=params,)
+    response1 = requests.get(url, params=params, proxies=proxy,)
     img_data = response1.content
     tmp_root_path = os.path.dirname(os.path.abspath(__file__))
     tmp_root_path = os.path.join(tmp_root_path, "slide_img_temp")
@@ -78,18 +93,38 @@ def captcha(url: str = ""):
         'd': get_d(pid + device_id + str(f)),
     }
     url = f"https://user.mypikpak.com/pzzl/verify"
-    response1 = requests.get(url, params=params,)
+    response1 = requests.get(url, params=params, proxies=proxy)
     response_data = response1.json()
     if response_data['result'] == 'accept':
         logger.info('验证通过!!!')
         url = f"https://user.mypikpak.com/credit/v1/report?deviceid={device_id}&captcha_token={captcha_token}&type=pzzlSlider&result=0&data={pid}&traceid={traceid}"
-        response2 = requests.get(url)
+        response2 = requests.get(url, proxies=proxy)
         response_data = response2.json()
         # logger.info('获取验证TOKEN:')
         logger.debug(json.dumps(response_data, indent=4))
+        save_frames(frames, int(select_id))
         return response_data.get("captcha_token")
     else:
         return ""
+
+
+cache_json_file = os.path.abspath(__file__)[:-3] + "Temp" + ".json"
+
+
+def save_frames(frames, ok_index):
+    try:
+        with open(cache_json_file, mode="r", encoding="utf-8") as file:
+            json_str = file.read()
+            json_data = json.loads(json_str)
+    except:
+        json_data = []
+
+    json_data.append({
+        "frames": frames,
+        'index': ok_index,
+    })
+    with open(cache_json_file, mode='w', encoding="utf-8") as file:
+        file.write(json.dumps(json_data, indent=4, ensure_ascii=False))
 
 
 if __name__ == "__main__":
@@ -98,9 +133,9 @@ if __name__ == "__main__":
     # # temp_url = "https://www.google.com/"
     # get_token_register(temp_url)
     # captcha_rewardVip()
-    # captcha(temp_url)
-    response = requests.get("http://localhost:7690/api/login", params={
-        "url": temp_url
-    })
-    json_data = response.json()
-    print(response)
+    captcha(temp_url)
+    # response = requests.get("http://localhost:7690/api/login", params={
+    #     "url": temp_url
+    # })
+    # json_data = response.json()
+    # print(response)
