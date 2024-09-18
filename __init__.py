@@ -1,8 +1,13 @@
-
 import logging
-from .captcha_2captcha import captcha_rewardVip as captcha_2captcha_rewardVip, get_token_register
+from .captcha_2captcha import (
+    captcha_rewardVip as captcha_2captcha_rewardVip,
+    get_token_register,
+)
 from .captcha_slide_img import captcha
-from .rapidapi import create_instance_and_pikpak_req, create_instance_and_pikpak_rewardVip
+from .rapidapi import (
+    create_instance_and_pikpak_req,
+    create_instance_and_pikpak_rewardVip,
+)
 
 logger = logging.getLogger("captcha")
 logger.setLevel(logging.DEBUG)

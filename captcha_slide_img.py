@@ -11,7 +11,13 @@ import requests
 
 from .ai.yolov8_test import ai_test_byte
 from .captcha_js2py import get_d, img_jj
-from .utils import delete_img, extract_parameters, image_run, remove_parameters, save_requests_img
+from .utils import (
+    delete_img,
+    extract_parameters,
+    image_run,
+    remove_parameters,
+    save_requests_img,
+)
 
 
 logger = logging.getLogger("slide_img")
@@ -24,13 +30,12 @@ proxy = None
 
 
 def captcha2(url: str = ""):
-    logger.info('滑块验证中!!!')
-    logger.debug(f'url:{url}')
+    logger.info("滑块验证中!!!")
+    logger.debug(f"url:{url}")
     params_dict = extract_parameters(url)
     device_id = params_dict.get("device_id")
-    captcha_token = params_dict.get('captcha_token')
-    url = f"https://user.mypikpak.com/credit/v1/report?deviceid={
-        device_id}&captcha_token={captcha_token}&type=pzzlSlider&result=0"
+    captcha_token = params_dict.get("captcha_token")
+    url = f"https://user.mypikpak.com/credit/v1/report?deviceid={device_id}&captcha_token={captcha_token}&type=pzzlSlider&result=0"
     response2 = requests.get(url, proxies=proxy)
     response_data = response2.json()
     logger.debug(json.dumps(response_data, indent=4))
@@ -39,31 +44,32 @@ def captcha2(url: str = ""):
 
 def captcha(url: str = ""):
     captcha_url = url
-    logger.info('滑块验证中!!!')
-    logger.debug(f'url:{url}')
+    logger.info("滑块验证中!!!")
+    logger.debug(f"url:{url}")
     params_dict = extract_parameters(url)
     # url = remove_parameters(url)
     url = "https://user.mypikpak.com/pzzl/gen"
     device_id = params_dict.get("device_id")
-    captcha_token = params_dict.get('captcha_token')
-    params = {
-        "deviceid": device_id,
-        "traceid": ""
-    }
-    response = requests.get(url, params=params, proxies=proxy,)
+    captcha_token = params_dict.get("captcha_token")
+    params = {"deviceid": device_id, "traceid": ""}
+    response = requests.get(
+        url,
+        params=params,
+        proxies=proxy,
+    )
     imgs_json = response.json()
     frames = imgs_json["frames"]
-    pid = imgs_json['pid']
-    traceid = imgs_json['traceid']
-    logger.info('滑块ID:')
+    pid = imgs_json["pid"]
+    traceid = imgs_json["traceid"]
+    logger.info("滑块ID:")
     logger.debug(json.dumps(pid, indent=4))
-    params = {
-        'deviceid': device_id,
-        'pid': pid,
-        'traceid': traceid
-    }
+    params = {"deviceid": device_id, "pid": pid, "traceid": traceid}
     url = "https://user.mypikpak.com/pzzl/image"
-    response1 = requests.get(url, params=params, proxies=proxy,)
+    response1 = requests.get(
+        url,
+        params=params,
+        proxies=proxy,
+    )
     img_data = response1.content
     tmp_root_path = os.path.dirname(os.path.abspath(__file__))
     tmp_root_path = os.path.join(tmp_root_path, "slide_img_temp")
@@ -74,7 +80,7 @@ def captcha(url: str = ""):
     # 识别图片
     select_id = None
     for file in os.listdir(tmp_root_path):
-        with open(f"{tmp_root_path}/{file}", 'rb') as f:
+        with open(f"{tmp_root_path}/{file}", "rb") as f:
             image_bytes = f.read()
             if ai_test_byte(image_bytes) == "ok":
                 select_id = file.split(".")[0]
@@ -85,35 +91,35 @@ def captcha(url: str = ""):
         logger.info("ai识别图片失败 重新验证")
         return captcha(captcha_url)
     json_data = img_jj(frames, int(select_id), pid)
-    f = json_data['f']
-    npac = json_data['ca']
+    f = json_data["f"]
+    npac = json_data["ca"]
     params = {
-        'pid': pid,
-        'deviceid': device_id,
-        'traceid': traceid,
-        'f': f,
-        'n': npac[0],
-        'p': npac[1],
-        'a': npac[2],
-        'c': npac[3],
-        'd': get_d(pid + device_id + str(f)),
+        "pid": pid,
+        "deviceid": device_id,
+        "traceid": traceid,
+        "f": f,
+        "n": npac[0],
+        "p": npac[1],
+        "a": npac[2],
+        "c": npac[3],
+        "d": get_d(pid + device_id + str(f)),
     }
     url = f"https://user.mypikpak.com/pzzl/verify"
     response1 = requests.get(url, params=params, proxies=proxy)
     response_data = response1.json()
-    if response_data['result'] == 'accept':
-        logger.info('验证通过!!!')
+    if response_data["result"] == "accept":
+        logger.info("验证通过!!!")
         sign, request_id = getResults(captcha_token)
         url = f"https://user.mypikpak.com/credit/v1/report"
         params = {
-            'deviceid': device_id,
-            'captcha_token': captcha_token,
-            'type': 'pzzlSlider',
-            'result': "0",
-            'data': pid,
-            'traceid': traceid,
-            'request_id': request_id,
-            'sign': sign,
+            "deviceid": device_id,
+            "captcha_token": captcha_token,
+            "type": "pzzlSlider",
+            "result": "0",
+            "data": pid,
+            "traceid": traceid,
+            "request_id": request_id,
+            "sign": sign,
             # 'rtc_token': '',
         }
         response2 = requests.get(url, params=params, proxies=proxy)
@@ -138,29 +144,27 @@ def getResults(captcha_str: str = ""):
     random_suffix_str = f"{random_suffix:03}"
 
     # 替换时间戳的后三位
-    final_timestamp = str(current_timestamp_milliseconds)[
-        :-3] + random_suffix_str
-    url = f'https://api-drive.mypikpak.com/captcha-jsonp/v2/executor?callback=handleJsonpResult_{
-        final_timestamp}'
+    final_timestamp = str(current_timestamp_milliseconds)[:-3] + random_suffix_str
+    url = f"https://api-drive.mypikpak.com/captcha-jsonp/v2/executor?callback=handleJsonpResult_{final_timestamp}"
     params = {
-        'callback': f'handleJsonpResult_{final_timestamp}',
+        "callback": f"handleJsonpResult_{final_timestamp}",
     }
     response = requests.get(url, params=params, proxies=proxy)
     handleJsonpResult = response.text
     # 正则表达式匹配
-    uuid_pattern = r'\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b'
-    uuid_pattern_and_word = r'\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}hello_world\b'
+    uuid_pattern = r"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b"
+    uuid_pattern_and_word = r"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}hello_world\b"
     match_uuid = re.findall(uuid_pattern, handleJsonpResult)
     match_uuid_word = re.findall(uuid_pattern_and_word, handleJsonpResult)
-    match_for_str = re.search(r'for\(.*\+\)', handleJsonpResult).group()
-    match_for_count = int(re.search(r'i<.*;', match_for_str).group()[2:-1], 16)
+    match_for_str = re.search(r"for\(.*\+\)", handleJsonpResult).group()
+    match_for_count = int(re.search(r"i<.*;", match_for_str).group()[2:-1], 16)
 
     uuid_result = match_uuid[0]
     uuid_word_str = match_uuid_word[0]
-    uuid_word_str_notword = uuid_word_str[:-len("hello_world")][-12:]
+    uuid_word_str_notword = uuid_word_str[: -len("hello_world")][-12:]
     for uuid_str in match_uuid:
         if uuid_word_str_notword in uuid_str:
-            print(f'这个是uuid-word 相识\n{uuid_str}')
+            print(f"这个是uuid-word 相识\n{uuid_str}")
             uuid_word_str_notword = uuid_str
         else:
             uuid_result = uuid_str
@@ -182,34 +186,36 @@ def getResults(captcha_str: str = ""):
 def md5_to_base64(string):
     # 计算 MD5 哈希值
     # 使用 digest() 获取字节形式的哈希值
-    md5_hash = hashlib.md5(string.encode('utf-8')).digest()
+    md5_hash = hashlib.md5(string.encode("utf-8")).digest()
 
     # 转换为 Base64 编码
     base64_encoded = base64.b64encode(md5_hash)
 
-    return base64_encoded.decode('utf-8')  # 将字节编码转换为字符串
+    return base64_encoded.decode("utf-8")  # 将字节编码转换为字符串
 
 
 def sha1_to_base64(string):
     # 计算 SHA-1 哈希值
-    sha1_hash = hashlib.sha1(string.encode(
-        'utf-8')).digest()  # 使用 digest() 获取字节形式的哈希值
+    sha1_hash = hashlib.sha1(
+        string.encode("utf-8")
+    ).digest()  # 使用 digest() 获取字节形式的哈希值
 
     # 转换为 Base64 编码
     base64_encoded = base64.b64encode(sha1_hash)
 
-    return base64_encoded.decode('utf-8')  # 将字节编码转换为字符串
+    return base64_encoded.decode("utf-8")  # 将字节编码转换为字符串
 
 
 def sha256_to_base64(string):
     # 计算 SHA-256 哈希值
-    sha256_hash = hashlib.sha256(string.encode(
-        'utf-8')).digest()  # 使用 digest() 获取字节形式的哈希值
+    sha256_hash = hashlib.sha256(
+        string.encode("utf-8")
+    ).digest()  # 使用 digest() 获取字节形式的哈希值
 
     # 转换为 Base64 编码
     base64_encoded = base64.b64encode(sha256_hash)
 
-    return base64_encoded.decode('utf-8')  # 将字节编码转换为字符串
+    return base64_encoded.decode("utf-8")  # 将字节编码转换为字符串
 
 
 cache_json_file = os.path.abspath(__file__)[:-3] + "Temp" + ".json"
@@ -223,11 +229,13 @@ def save_frames(frames, ok_index):
     except:
         json_data = []
 
-    json_data.append({
-        "frames": frames,
-        'index': ok_index,
-    })
-    with open(cache_json_file, mode='w', encoding="utf-8") as file:
+    json_data.append(
+        {
+            "frames": frames,
+            "index": ok_index,
+        }
+    )
+    with open(cache_json_file, mode="w", encoding="utf-8") as file:
         file.write(json.dumps(json_data, indent=4, ensure_ascii=False))
 
 

@@ -6,6 +6,7 @@ from twocaptcha import TwoCaptcha
 
 from urllib.parse import urlparse, parse_qs, urlunparse
 from .utils import extract_parameters, remove_parameters
+
 TWOCAPTCHA_KEY = os.getenv("TWOCAPTCHA_KEY")
 
 logger = logging.getLogger("2captcha")
@@ -38,17 +39,17 @@ def get_token_register(url: str = "", data_sitekey=sitekey_login):
     }
     params = {
         "deviceid": params_dict["deviceid"],
-        'captcha_token': captcha_token,
-        'type': "recaptcha",
-        "result": '0',
-        'data': result['code']
-
+        "captcha_token": captcha_token,
+        "type": "recaptcha",
+        "result": "0",
+        "data": result["code"],
     }
 
-    response = requests.get(url,
-                            headers=headers,
-                            params=params,
-                            )
+    response = requests.get(
+        url,
+        headers=headers,
+        params=params,
+    )
     res_js_data = response.json()
     # if res_js_data.get("error") != "":
     #     logger.error(res_js_data.get("error"))
@@ -62,7 +63,7 @@ def captcha_rewardVip():
         sitekey=sitekey_rewardVip,
         # url="https://api-drive.mypikpak.com/vip/v1/verifyRecaptchaToken",
         # url=f"https://www.google.com/recaptcha/api2/userverify?k={sitekey_rewardVip}",
-        url="https://user.mypikpak.com"
+        url="https://user.mypikpak.com",
     )
     logger.info(result)
     return result["code"]
