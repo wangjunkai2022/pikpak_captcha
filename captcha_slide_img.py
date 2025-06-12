@@ -60,7 +60,7 @@ def captcha(url: str = ""):
     imgs_json = response.json()
     frames = imgs_json["frames"]
     pid = imgs_json["pid"]
-    traceid = imgs_json["traceid"]
+    traceid = imgs_json.get("traceid") or params.get("traceid")
     logger.info("滑块ID:")
     logger.debug(json.dumps(pid, indent=4))
     params = {"deviceid": device_id, "pid": pid, "traceid": traceid}
@@ -156,15 +156,25 @@ def getResults(captcha_str: str = ""):
     uuid_pattern_and_word = r"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}hello_world\b"
     match_uuid = re.findall(uuid_pattern, handleJsonpResult)
     match_uuid_word = re.findall(uuid_pattern_and_word, handleJsonpResult)
-    match_for_str = re.search(r"for\(.*\+\)", handleJsonpResult).group()
-    match_for_count = int(re.search(r"i<.*;", match_for_str).group()[2:-1], 16)
+    
+    # 查看循环次数
+    match_for_count = None
+    try:
+        match_for_str = re.search(r"for\(.*\+\)", handleJsonpResult).group()
+        match_for_count = int(re.search(r"i<.*;", match_for_str).group()[2:-1], 16)
+    except Exception as e:
+        logger.debug("查找失败 调用解码失败")
+
+    # 循环次数查找失败 查找调用次数 
+    if not match_for_count:
+       match_for_count = handleJsonpResult.count("hashResult=calcFn(hashResult)")
 
     uuid_result = match_uuid[0]
     uuid_word_str = match_uuid_word[0]
     uuid_word_str_notword = uuid_word_str[: -len("hello_world")][-12:]
     for uuid_str in match_uuid:
         if uuid_word_str_notword in uuid_str:
-            print(f"这个是uuid-word 相识\n{uuid_str}")
+            logger.debug(f"这个是uuid-word 相识\n{uuid_str}")
             uuid_word_str_notword = uuid_str
         else:
             uuid_result = uuid_str
@@ -251,5 +261,6 @@ if __name__ == "__main__":
     # # })
     # # json_data = response.json()
     # # print(response)
-
+    temp_url = "https://user.mypikpak.com/captcha/v2/spritePuzzle.html?action=POST%3A%2Fv1%2Fauth%2Fsignin&appName=NONE&appid=XBASE&captcha_token=ck0.UNBecjntQOAz2qON0PWZdV1vFiGN3DwQ6_1Z3GcVvKNK-Fy9UretbJl-xoOnQ0IXU57Uww0SHseaY9b0GYT3dhnf5dw3oE4xJ3VHnUcAQt9mZT6nryEvEG_juBEC33LwwSnI9Zb5VLbOg-6cIkbm7JMOprEE1OwZCUejli3zE4_D9QWnNtRLoJ0pWi3Vb08ZS88kmlsqTEgk156CAZPxNy1-U4cjA_1pEmQih-R4VjJe3YAmOO68V8ZijoHIeztg2C7c8AEaiQOXeSeiibl--zMhfaPz9IsF2Paah96_MEGPTVOCkjgdM0f4HMbgq9D3qFW21qdgu6J_OGzniRWjD9bmfQ2ln3G6SDOTs7mTRqdn7tG933SdOGPhr_pCQpgQmU1F-tHWeBOMHF_5N0szOvdtylRvJB9OxByaxbGdGCCdLg-wMO0dSzf1yB_6y7ZQ5UGEJDl-3Xg_2F0cvkLdjr8ymxy_uLhmQjTMc52vcMe43SLGq8l_27obNq_TOf2GZIlEjC-7vwey42QxlVlkza-j7IrZhsXvvldjHYSCitk.ClgIoMP28PUyEhBZTnhUOXc3R01kV3ZFT0thGgYxLjU0LjIiE2NvbS5waWtjbG91ZC5waWtwYWsqIGE4YjQyM2JhMTZiZDNmODg4MjZjNmZhNmY2YTUzY2FmEoABtxp-erhM3Tub2JnCd1IY1ukXIh1eaAV6H6b13dJu4qonqWZbhhQiXFS4oxtaaAE2jjeLv_uCWZjgB-nDNZvVX2yRu0OHXw6h87zKC55UJ3zumnKFnxR7v90k4b73DNOJuyf25Ln9DkmAfwakLGURtw4P46Tp__CnOJQqHGnlDBI&clientVersion=NONE&client_id=YNxT9w7GMdWvEOKa&countryCode=HK&creditkey=ck0.UNBecjntQOAz2qON0PWZdV1vFiGN3DwQ6_1Z3GcVvKNK-Fy9UretbJl-xoOnQ0IXU57Uww0SHseaY9b0GYT3dhnf5dw3oE4xJ3VHnUcAQt8in_xOAPvL2AUzbNfERVqSH_0Bcrt4T2HKTWk1PUJ_dgfIA2gu2dmVuNHmuqQdlkWW1ORGrW6imBUMIBuGBNJGvJ-09iq-IxZrxcFvAiFSmOvpIn5zkPMkqLSjpFrZkkfCcglmA0jWhn_HHWd1js9QkhjBKCvZj2nf1_QDVnBNnd5hmstbLhwSP3V-6LZBGRSPdtb3cCsAQK47x6TbEJTIsUTlcSMneTD7gG-Gedr14vDZ5tBV7W-wg_1R48F4e1n3B3vAjivLlOPoy621w9EZttLgL_4MTv9K1-5tyMhcsB38Qrbf1OUasyPyGBMSPtPaEEOWiTaoV2dMVgVhJ2NJunoUr4PzLRyKQRi0-ktmC_hpiM_hKyvxYdYLjCnmWtEg9qa5h872mW99gnOiDRFy.ClgIoMP28PUyEhBZTnhUOXc3R01kV3ZFT0thGgYxLjU0LjIiE2NvbS5waWtjbG91ZC5waWtwYWsqIGE4YjQyM2JhMTZiZDNmODg4MjZjNmZhNmY2YTUzY2FmEoABtxp-erhM3Tub2JnCd1IY1ukXIh1eaAV6H6b13dJu4qonqWZbhhQiXFS4oxtaaAE2jjeLv_uCWZjgB-nDNZvVX2yRu0OHXw6h87zKC55UJ3zumnKFnxR7v90k4b73DNOJuyf25Ln9DkmAfwakLGURtw4P46Tp__CnOJQqHGnlDBI&credittype=1&device_id=a8b423ba16bd3f88826c6fa6f6a53caf&deviceid=a8b423ba16bd3f88826c6fa6f6a53caf&event=signin_check&hl=zh&platformVersion=NONE&privateStyle=&redirect_uri=xlaccsdk01%3A%2F%2Fxbase.cloud%2Fcallback%3Fstate%3Dharbor&traceid="
+    captcha(temp_url)
     getResults("test")
