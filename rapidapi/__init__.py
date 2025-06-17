@@ -36,8 +36,7 @@ class BaseRapidapi():
             "x-rapidapi-key": RAPIDAPI_KEY or os.getenv("RAPIDAPI_KEY"),
             "x-rapidapi-host": domain_get(self.api_url),
         }
-        result = requests.get(
-            solvev2e_url, headers=headers, params=self.params)
+        result = requests.get(solvev2e_url, headers=headers, params=self.params)
         if result.status_code != 200:
             logger.debug(f"pikpak_req 失败:{result.text}")
             raise Exception("pikpak_req 报错了")
@@ -60,10 +59,7 @@ class BaseRapidapi():
 
         }
 
-        response = requests.get(url,
-                                headers=headers,
-                                params=params,
-                                )
+        response = requests.get(url, headers=headers, params=params,)
         res_js_data = response.json()
         # if res_js_data.get("error") != "":
         #     logger.error(res_js_data.get("error"))
@@ -80,8 +76,7 @@ class BaseRapidapi():
             "x-rapidapi-key": RAPIDAPI_KEY or os.getenv("RAPIDAPI_KEY"),
             "x-rapidapi-host": domain_get(self.api_url),
         }
-        result = requests.get(
-            solvev2e_url, headers=headers, params=self.params)
+        result = requests.get( solvev2e_url, headers=headers, params=self.params)
         if result.status_code != 200:
             logger.error(f"captcha_rewardVip 失败:{result.text}")
             raise Exception("pikpak_rewardVip 报错了")

@@ -37,7 +37,7 @@ def captcha2(url: str = ""):
     device_id = params_dict.get("device_id")
     captcha_token = params_dict.get("captcha_token")
     url = f"https://user.mypikpak.com/credit/v1/report?deviceid={device_id}&captcha_token={captcha_token}&type=pzzlSlider&result=0"
-    response2 = requests.get(url, proxies=proxy)
+    response2 = requests.get(url, proxies=proxy, verify=False)
     response_data = response2.json()
     logger.debug(json.dumps(response_data, indent=4))
     return response_data.get("captcha_token")
@@ -53,11 +53,7 @@ def captcha(url: str = "", proxy=None):
     device_id = params_dict.get("device_id")
     captcha_token = params_dict.get("captcha_token")
     params = {"deviceid": device_id, "traceid": ""}
-    response = requests.get(
-        url,
-        params=params,
-        proxies=proxy,
-    )
+    response = requests.get(url, params=params, proxies=proxy, verify=False)
     imgs_json = response.json()
     frames = imgs_json["frames"]
     pid = imgs_json["pid"]
@@ -66,11 +62,7 @@ def captcha(url: str = "", proxy=None):
     logger.debug(json.dumps(pid, indent=4))
     params = {"deviceid": device_id, "pid": pid, "traceid": traceid}
     url = "https://user.mypikpak.com/pzzl/image"
-    response1 = requests.get(
-        url,
-        params=params,
-        proxies=proxy,
-    )
+    response1 = requests.get(url, params=params, proxies=proxy, verify=False)
     img_data = response1.content
     tmp_root_path = os.path.dirname(os.path.abspath(__file__))
     now = datetime.datetime.now()
@@ -110,7 +102,7 @@ def captcha(url: str = "", proxy=None):
         "d": get_d(pid + device_id + str(f)),
     }
     url = f"https://user.mypikpak.com/pzzl/verify"
-    response1 = requests.get(url, params=params, proxies=proxy)
+    response1 = requests.get(url, params=params, proxies=proxy, verify=False)
     response_data = response1.json()
     if response_data["result"] == "accept":
         logger.info("验证通过!!!")
@@ -127,7 +119,7 @@ def captcha(url: str = "", proxy=None):
             "sign": sign,
             # 'rtc_token': '',
         }
-        response2 = requests.get(url, params=params, proxies=proxy)
+        response2 = requests.get(url, params=params, proxies=proxy, verify=False)
         response_data = response2.json()
         # logger.info('获取验证TOKEN:')
         logger.debug(json.dumps(response_data, indent=4))
@@ -154,7 +146,7 @@ def getResults(captcha_str: str = ""):
     params = {
         "callback": f"handleJsonpResult_{final_timestamp}",
     }
-    response = requests.get(url, params=params, proxies=proxy)
+    response = requests.get(url, params=params, proxies=proxy, verify=False)
     handleJsonpResult = response.text
     # 正则表达式匹配
     uuid_pattern = r"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b"
