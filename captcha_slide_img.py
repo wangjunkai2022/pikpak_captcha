@@ -1,4 +1,5 @@
 import base64
+import datetime
 import hashlib
 import json
 import logging
@@ -42,7 +43,7 @@ def captcha2(url: str = ""):
     return response_data.get("captcha_token")
 
 
-def captcha(url: str = ""):
+def captcha(url: str = "", proxy=None):
     captcha_url = url
     logger.info("滑块验证中!!!")
     logger.debug(f"url:{url}")
@@ -72,7 +73,11 @@ def captcha(url: str = ""):
     )
     img_data = response1.content
     tmp_root_path = os.path.dirname(os.path.abspath(__file__))
-    tmp_root_path = os.path.join(tmp_root_path, "slide_img_temp")
+    now = datetime.datetime.now()
+    # 格式化输出时间
+    formatted_time = now.strftime("%Y-%m-%d %H-%M-%S")
+    tmp_root_path = os.path.join(tmp_root_path, "slide_img_temp", device_id, formatted_time)
+    # tmp_root_path = os.path.join(tmp_root_path, f"{device_id[:-len(device_id)/2]}")
     one_img = os.path.join(tmp_root_path, "1.png")
     save_requests_img(img_data, one_img)
     # 保存拼图图片
@@ -89,7 +94,7 @@ def captcha(url: str = ""):
     delete_img(one_img)
     if not select_id:
         logger.info("ai识别图片失败 重新验证")
-        return captcha(captcha_url)
+        return captcha(captcha_url, proxy)
     json_data = img_jj(frames, int(select_id), pid)
     f = json_data["f"]
     npac = json_data["ca"]
@@ -156,7 +161,7 @@ def getResults(captcha_str: str = ""):
     uuid_pattern_and_word = r"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}hello_world\b"
     match_uuid = re.findall(uuid_pattern, handleJsonpResult)
     match_uuid_word = re.findall(uuid_pattern_and_word, handleJsonpResult)
-    
+
     # 查看循环次数
     match_for_count = None
     try:
@@ -165,9 +170,9 @@ def getResults(captcha_str: str = ""):
     except Exception as e:
         logger.debug("查找失败 调用解码失败")
 
-    # 循环次数查找失败 查找调用次数 
+    # 循环次数查找失败 查找调用次数
     if not match_for_count:
-       match_for_count = handleJsonpResult.count("hashResult=calcFn(hashResult)")
+        match_for_count = handleJsonpResult.count("hashResult=calcFn(hashResult)")
 
     uuid_result = match_uuid[0]
     uuid_word_str = match_uuid_word[0]

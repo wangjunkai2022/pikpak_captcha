@@ -5,6 +5,9 @@ import os
 import requests
 
 from ..utils import domain_get, extract_parameters, remove_parameters
+from dotenv import load_dotenv
+# 加载.env文件中的环境变量
+load_dotenv()
 
 RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY")
 logger = logging.getLogger("rapidapi")

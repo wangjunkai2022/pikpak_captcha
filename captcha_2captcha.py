@@ -6,7 +6,9 @@ from twocaptcha import TwoCaptcha
 
 from urllib.parse import urlparse, parse_qs, urlunparse
 from .utils import extract_parameters, remove_parameters
-
+from dotenv import load_dotenv
+# 加载.env文件中的环境变量
+load_dotenv()
 TWOCAPTCHA_KEY = os.getenv("TWOCAPTCHA_KEY")
 
 logger = logging.getLogger("2captcha")

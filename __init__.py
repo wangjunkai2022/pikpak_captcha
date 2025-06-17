@@ -16,11 +16,11 @@ handler.setLevel(logging.DEBUG)
 logger.addHandler(handler)
 
 
-def slider_validation(url: str):
+def slider_validation(url: str, proxy=None):
     """
     滑块验证
     """
-    return captcha(url)
+    return captcha(url, proxy)
 
 
 def google_re_validation(url: str):
