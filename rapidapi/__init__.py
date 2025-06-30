@@ -19,7 +19,6 @@ logger.addHandler(handler)
 sitekey_login = "6LdwHgcqAAAAACSTxyrqqnHNY9-NdSvRD-1A1eap"
 sitekey_rewardVip = "6LerFi0pAAAAAB8PSfeUmwtJx6imhQpza2dCjMmG"
 
-
 class BaseRapidapi():
     api_url = ''
     key_api_params_url = ""
@@ -27,20 +26,42 @@ class BaseRapidapi():
     params = {}
 
     def pikpak_req(self, url: str = "", sitekey=sitekey_login):
+        captcha_type = "recaptcha"
+        if "txCaptcha" in url:
+            captcha_type = "txCaptcha"
+
         params_dict = extract_parameters(url)
         url = remove_parameters(url)
         solvev2e_url = self.api_url
         self.params[self.key_api_params_url] = f"{url}"
         self.params[self.key_api_params_sitekey] = f"{sitekey}"
         headers = {
-            "x-rapidapi-key": RAPIDAPI_KEY or os.getenv("RAPIDAPI_KEY"),
+            "x-rapidapi-key": RAPIDAPI_KEY,
             "x-rapidapi-host": domain_get(self.api_url),
         }
         result = requests.get(solvev2e_url, headers=headers, params=self.params)
+        logger.debug(f"rapidapi result:\n{result}")
         if result.status_code != 200:
             logger.debug(f"pikpak_req 失败:{result.text}")
             raise Exception("pikpak_req 报错了")
         result_json = result.json()
+        if result_json.get("error") and result_json.get("error") != "":
+            raise Exception(f"人机验证失败:\n{url}")
+
+        if captcha_type == "txCaptcha":
+            return result_json.get("captcha_response")
+            # https://user.mypikpak.com/credit/v1/report?deviceid=a8b423ba16bd3f88826c6fa6f6a53caf&captcha_token=ck0.5Y2OjdaefRjSKhE_py4yekAozlnY5y_c5NSITuo5phHoaqtRn8I27hPH7zKRrgvraAoJrjgPi8NCPT54kQLO_DyxX7NYdcYebshzp60VoVqp5sxxBw-TzG1Dbhjlpw27fp6azVlrxbrnrwwK2KNRcXyNwzcTFqQnu4haS9nD6gEVb3EPUt13UhP4QIVyqhq2_S5HAebkoG_CVof88LS_-QlYrHMv_woq4wqJvhLpCi2paofs7cqNimop5bkDdvFp4ef2UA79PwFVKxNXh5OXVJe1I07nFcPoplvdWTyoiR1oBUDuIO18HQMCsccsfoCJigeBv5_0O7TSXM7cgASK4ZC_AMDkQdyCTL307SmlEyey6JHxFLAB1PH8f9JMAwF5q34zDmLFEIwadhvmNpzJZR5TH06cQXND_SFfl8dGQJ-5D1SBQWisePGTVjtsK0GmaL1g5SNTFS3p-9DMiNiUq01bYaU38Mdac8FMJKgxVAMrw-IoIC6eU8adrvIU4ghqKAxfXPrRvq8Tmo2s3I7DwkL50ENPVsjYepgkxNEqQL8G-i75sMO6ESgymVllR6Gx.ClgIu6zX2vgyEhBZTnhUOXc3R01kV3ZFT0thGgYxLjU0LjIiE2NvbS5waWtjbG91ZC5waWtwYWsqIGE4YjQyM2JhMTZiZDNmODg4MjZjNmZhNmY2YTUzY2FmEoABZyKiAKc5KqCM5gWW2sKj8lVDQ6F31hlJOiDGrlvh4PAhXlgOlAKt4YIlizyzYYmm30vTW206jkWM3LsP2jYXhfwugChSuOKlzUO35OYDh2zE4-b7xGzY6RCGgyzY2GpZA42LnflL4drCLs_C4RgGkA6vAQMQS_iQp442u-Altiw&type=txCaptcha&result=0&data=tr0362dRmkyYi3JLYXtDcy4-PyfDUdyvHpU2zBHaNEwOs5GbPfZgoEaiy7Zv5XBWjjMZoLI9FbK3YDQFkSQDTL9y5QN-zaUotoD6B1i2aUFjHWiMC9BCc4i4U4yYcA_9shsS36nOoqxPaYiTOZRGy_mw8w**&rand_str=%40mDW&request_id=9bd0e318-d89f-4478-9cf9-ac7d18f060a8&sign=CMd0DwOyOlfgEqQXuUidtg%3D%3D&rtc_token=23dc:9ca6:6854:d287:406:7902:ddd:1b5
+#         https://user.mypikpak.com/credit/v1/report?
+# deviceid=a8b423ba16bd3f88826c6fa6f6a53caf&
+# captcha_token=ck0.5Y2OjdaefRjSKhE_py4yekAozlnY5y_c5NSITuo5phHoaqtRn8I27hPH7zKRrgvraAoJrjgPi8NCPT54kQLO_DyxX7NYdcYebshzp60VoVqp5sxxBw-TzG1Dbhjlpw27fp6azVlrxbrnrwwK2KNRcXyNwzcTFqQnu4haS9nD6gEVb3EPUt13UhP4QIVyqhq2_S5HAebkoG_CVof88LS_-QlYrHMv_woq4wqJvhLpCi2paofs7cqNimop5bkDdvFp4ef2UA79PwFVKxNXh5OXVJe1I07nFcPoplvdWTyoiR1oBUDuIO18HQMCsccsfoCJigeBv5_0O7TSXM7cgASK4ZC_AMDkQdyCTL307SmlEyey6JHxFLAB1PH8f9JMAwF5q34zDmLFEIwadhvmNpzJZR5TH06cQXND_SFfl8dGQJ-5D1SBQWisePGTVjtsK0GmaL1g5SNTFS3p-9DMiNiUq01bYaU38Mdac8FMJKgxVAMrw-IoIC6eU8adrvIU4ghqKAxfXPrRvq8Tmo2s3I7DwkL50ENPVsjYepgkxNEqQL8G-i75sMO6ESgymVllR6Gx.ClgIu6zX2vgyEhBZTnhUOXc3R01kV3ZFT0thGgYxLjU0LjIiE2NvbS5waWtjbG91ZC5waWtwYWsqIGE4YjQyM2JhMTZiZDNmODg4MjZjNmZhNmY2YTUzY2FmEoABZyKiAKc5KqCM5gWW2sKj8lVDQ6F31hlJOiDGrlvh4PAhXlgOlAKt4YIlizyzYYmm30vTW206jkWM3LsP2jYXhfwugChSuOKlzUO35OYDh2zE4-b7xGzY6RCGgyzY2GpZA42LnflL4drCLs_C4RgGkA6vAQMQS_iQp442u-Altiw&
+# type=txCaptcha&
+# result=0&
+# data=tr0362dRmkyYi3JLYXtDcy4-PyfDUdyvHpU2zBHaNEwOs5GbPfZgoEaiy7Zv5XBWjjMZoLI9FbK3YDQFkSQDTL9y5QN-zaUotoD6B1i2aUFjHWiMC9BCc4i4U4yYcA_9shsS36nOoqxPaYiTOZRGy_mw8w**&
+# rand_str=%40mDW&
+# request_id=9bd0e318-d89f-4478-9cf9-ac7d18f060a8&
+# sign=CMd0DwOyOlfgEqQXuUidtg%3D%3D&
+# rtc_token=23dc:9ca6:6854:d287:406:7902:ddd:1b5
+
         url = "https://user.mypikpak.com/credit/v1/report"
         captcha_token = params_dict.get("captcha_token")
         headers = {
@@ -53,7 +74,7 @@ class BaseRapidapi():
         params = {
             "deviceid": params_dict["deviceid"],
             'captcha_token': captcha_token,
-            'type': "recaptcha",
+            'type': captcha_type,
             "result": '0',
             'data': result_json.get("result")
 
@@ -73,7 +94,7 @@ class BaseRapidapi():
         self.params[self.key_api_params_url] = f"{url}"
         self.params[self.key_api_params_sitekey] = f"{sitekey}"
         headers = {
-            "x-rapidapi-key": RAPIDAPI_KEY or os.getenv("RAPIDAPI_KEY"),
+            "x-rapidapi-key": RAPIDAPI_KEY,
             "x-rapidapi-host": domain_get(self.api_url),
         }
         result = requests.get( solvev2e_url, headers=headers, params=self.params)
